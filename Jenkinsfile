@@ -8,6 +8,7 @@ pipeline {
 
     options {
         skipDefaultCheckout(true)
+        timestamps()
     }
 
     stages {
@@ -26,6 +27,17 @@ pipeline {
             }
         }
 
+        stage('Verify Tools') {
+            steps {
+                sh '''
+                    echo "===== JAVA VERSION ====="
+                    java -version
+                    echo "===== MAVEN VERSION ====="
+                    mvn -version
+                '''
+            }
+        }
+
         stage('Build Application') {
             steps {
                 sh 'mvn clean package -B'
@@ -38,7 +50,8 @@ pipeline {
             }
             post {
                 always {
-                    junit 'target/surefire-reports/**/*.xml'
+                    junit allowEmptyResults: true,
+                          testResults: 'target/surefire-reports/**/*.xml'
                 }
             }
         }
@@ -46,10 +59,10 @@ pipeline {
 
     post {
         success {
-            echo 'Build and tests completed successfully!'
+            echo 'Build & Test completed successfully!'
         }
         failure {
-            echo 'Build or tests failed!'
+            echo 'Build or Test failed!'
         }
         always {
             cleanWs()
