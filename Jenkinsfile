@@ -6,14 +6,19 @@ pipeline {
         maven 'Maven3'
     }
 
+    options {
+        skipDefaultCheckout(true)
+    }
+
     stages {
+
         stage('Cleanup Workspace') {
             steps {
-                cleanWs()  // Requires Workspace Cleanup plugin
+                cleanWs()
             }
         }
 
-        stage('Checkout from SCM') {
+        stage('Checkout Source Code') {
             steps {
                 git branch: 'main',
                     credentialsId: 'github',
@@ -23,19 +28,31 @@ pipeline {
 
         stage('Build Application') {
             steps {
-                sh 'mvn clean package'
+                sh 'mvn clean package -B'
             }
         }
 
         stage('Test Application') {
             steps {
-                sh 'mvn test'
+                sh 'mvn test -B'
             }
             post {
                 always {
-                    junit 'target/surefire-reports/**/*.xml'  // Publishes test results
+                    junit 'target/surefire-reports/**/*.xml'
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Build and tests completed successfully!'
+        }
+        failure {
+            echo 'Build or tests failed!'
+        }
+        always {
+            cleanWs()
         }
     }
 }
