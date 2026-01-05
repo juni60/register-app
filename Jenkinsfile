@@ -17,7 +17,7 @@ pipeline {
             steps {
                 git branch: 'main',
                     credentialsId: 'github',
-                    url: ''https://github.com/juni60/register-app.git'
+                    url: ''https://github.com/juni60/register-app'
             }
         }
 
