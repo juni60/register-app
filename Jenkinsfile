@@ -50,6 +50,7 @@ pipeline {
             }
             post {
                 always {
+                    // Publish JUnit results, allow empty results if no tests
                     junit allowEmptyResults: true,
                           testResults: 'target/surefire-reports/**/*.xml'
                 }
@@ -58,8 +59,8 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                // Using Jenkins-managed SonarQube server and SonarScanner
-                withSonarQubeEnv('SonarQube') {
+                // Replace 'SonarQube-Server' with the exact name of your Jenkins SonarQube server
+                withSonarQubeEnv('SonarQube-Server') {
                     sh """
                         ${tool 'SonarScanner'}/bin/sonar-scanner \
                         -Dsonar.projectKey=register-app \
@@ -73,8 +74,8 @@ pipeline {
 
         stage('Quality Gate') {
             steps {
-                // Wait for SonarQube Quality Gate result and abort pipeline if failed
                 timeout(time: 5, unit: 'MINUTES') {
+                    // Wait for SonarQube Quality Gate result
                     waitForQualityGate abortPipeline: true
                 }
             }
