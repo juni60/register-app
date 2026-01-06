@@ -70,23 +70,25 @@ pipeline {
             steps {
                 withSonarQubeEnv('SonarQube-Server') {
                     script {
-                        // Detect all folders containing Java source files
+                        // Detect sources
                         def sources = sh(script: "find . -name '*.java' -exec dirname {} \\; | sort -u", returnStdout: true).trim()
                         def sourcesArg = sources ? "-Dsonar.sources=${sources.replaceAll('\\n', ',')}" : ""
-                        
-                        // Detect all target folders with compiled classes
+                        if (!sourcesArg) { echo "⚠️ No Java sources found, skipping sonar.sources" }
+
+                        // Detect binaries
                         def binaries = sh(script: "find . -type d -name 'target' -exec bash -c 'if [ -d \"\$0/classes\" ]; then echo \$0/classes; fi' {} \\;", returnStdout: true).trim()
                         def binariesArg = binaries ? "-Dsonar.java.binaries=${binaries.replaceAll('\\n', ',')}" : ""
-                        
-                        // Get Git info
+                        if (!binariesArg) { echo "⚠️ No target/classes folders found, skipping sonar.java.binaries" }
+
+                        // Git info
                         def gitBranch = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
                         def gitCommit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
-                        echo "✅ Detected sources: ${sourcesArg}"
-                        echo "✅ Detected binaries: ${binariesArg}"
-                        echo "✅ Git branch: ${gitBranch}, commit: ${gitCommit}"
+
+                        // Safe SonarScanner tool
+                        def sonarScannerTool = tool name: 'SonarScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
 
                         sh """
-                            ${tool 'SonarScanner'}/bin/sonar-scanner \
+                            ${sonarScannerTool}/bin/sonar-scanner \
                             -Dsonar.projectKey=register-app \
                             -Dsonar.projectName=register-app \
                             $sourcesArg $binariesArg \
@@ -100,7 +102,7 @@ pipeline {
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 15, unit: 'MINUTES') { // extended timeout for large projects
+                timeout(time: 15, unit: 'MINUTES') { // extended timeout
                     waitForQualityGate abortPipeline: false
                 }
             }
