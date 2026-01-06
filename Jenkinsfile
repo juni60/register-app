@@ -55,14 +55,24 @@ pipeline {
                 }
             }
         }
+
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    withSonarQubeEnv(credentialsId: 'Jenkins-SonarQube-token') {
+                        sh 'mvn sonar:sonar'
+                    }
+                }
+            }
+        }
     }
 
     post {
         success {
-            echo 'Build & Test completed successfully!'
+            echo 'Build, Test & SonarQube Analysis completed successfully!'
         }
         failure {
-            echo 'Build or Test failed!'
+            echo 'Pipeline failed!'
         }
         always {
             cleanWs()
