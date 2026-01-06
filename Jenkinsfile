@@ -50,7 +50,6 @@ pipeline {
             }
             post {
                 always {
-                    // Publish JUnit results, allow empty results if no tests
                     junit allowEmptyResults: true,
                           testResults: 'target/surefire-reports/**/*.xml'
                 }
@@ -59,15 +58,9 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                // Replace 'SonarQube-Server' with the exact name of your Jenkins SonarQube server
+                // Use Maven Sonar plugin; 'SonarQube-Server' must match your Jenkins SonarQube server name
                 withSonarQubeEnv('SonarQube-Server') {
-                    sh """
-                        ${tool 'SonarScanner'}/bin/sonar-scanner \
-                        -Dsonar.projectKey=register-app \
-                        -Dsonar.projectName=register-app \
-                        -Dsonar.sources=src \
-                        -Dsonar.java.binaries=target
-                    """
+                    sh 'mvn sonar:sonar'
                 }
             }
         }
