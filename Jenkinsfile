@@ -58,10 +58,24 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                script {
-                    withSonarQubeEnv(credentialsId: 'Jenkins-SonarQube-token') {
-                        sh 'mvn sonar:sonar'
-                    }
+                // Using Jenkins-managed SonarQube server and SonarScanner
+                withSonarQubeEnv('SonarQube') {
+                    sh """
+                        ${tool 'SonarScanner'}/bin/sonar-scanner \
+                        -Dsonar.projectKey=register-app \
+                        -Dsonar.projectName=register-app \
+                        -Dsonar.sources=src \
+                        -Dsonar.java.binaries=target
+                    """
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                // Wait for SonarQube Quality Gate result and abort pipeline if failed
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
