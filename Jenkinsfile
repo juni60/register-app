@@ -65,7 +65,7 @@ pipeline {
                         ${tool 'SonarScanner'}/bin/sonar-scanner \
                         -Dsonar.projectKey=register-app \
                         -Dsonar.projectName=register-app \
-                        -Dsonar.sources=src \
+                        -Dsonar.sources=src/main/java \
                         -Dsonar.java.binaries=target
                     """
                 }
