@@ -50,7 +50,6 @@ pipeline {
             }
             post {
                 always {
-                    // Publish JUnit results, allow empty results if no tests exist
                     junit allowEmptyResults: true,
                           testResults: 'target/surefire-reports/**/*.xml'
                 }
@@ -59,13 +58,12 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                // Replace 'SonarQube-Server' with your exact Jenkins SonarQube server name
                 withSonarQubeEnv('SonarQube-Server') {
                     sh """
                         ${tool 'SonarScanner'}/bin/sonar-scanner \
                         -Dsonar.projectKey=register-app \
                         -Dsonar.projectName=register-app \
-                        -Dsonar.sources=src/main/java \
+                        -Dsonar.sources=. \
                         -Dsonar.java.binaries=target
                     """
                 }
