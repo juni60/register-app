@@ -45,7 +45,6 @@ pipeline {
 
         stage('Quality Gate') {
             steps {
-                // No timeout wrapper here
                 waitForQualityGate abortPipeline: true
             }
         }
