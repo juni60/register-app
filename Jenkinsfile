@@ -23,21 +23,25 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'mvn clean verify'
+                dir('your-project-folder') { // change to the folder containing pom.xml
+                    sh 'mvn clean verify'
+                }
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                script {
-                    withSonarQubeEnv(credentialsId: 'Jenkins-SonarQube-token') {
-                        sh '''
-                            mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-                                -Dsonar.projectKey=my-project \
-                                -Dsonar.projectName="My Project" \
-                                -Dsonar.host.url=http://your-sonarqube-server:9000 \
-                                -Dsonar.login=$SONAR_AUTH_TOKEN
-                        '''
+                dir('your-project-folder') { // same folder as pom.xml
+                    script {
+                        withSonarQubeEnv(credentialsId: 'jenkins-sonarqube-token') {
+                            sh '''
+                                mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                                    -Dsonar.projectKey=my-project \
+                                    -Dsonar.projectName="My Project" \
+                                    -Dsonar.host.url=http://your-sonarqube-server:9000 \
+                                    -Dsonar.login=$SONAR_AUTH_TOKEN
+                            '''
+                        }
                     }
                 }
             }
