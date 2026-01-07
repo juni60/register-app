@@ -31,13 +31,13 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                dir('juni60/register-app') { // same folder as pom.xml
+                dir('register-app') { // same folder as pom.xml
                     script {
                         withSonarQubeEnv(credentialsId: 'jenkins-sonarqube-token') {
                             sh '''
                                 mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
                                     -Dsonar.projectKey=my-project \
-                                    -Dsonar.projectName="My Project" \
+                                    -Dsonar.projectName="register-app-ci" \
                                     -Dsonar.host.url=http://your-sonarqube-server:9000 \
                                     -Dsonar.login=$SONAR_AUTH_TOKEN
                             '''
