@@ -12,7 +12,7 @@ pipeline {
 
     environment {
         SONAR_HOST_URL = 'http://your-sonarqube-server:9000'
-        SONAR_AUTH_TOKEN = credentials('sonar-token-id') // Jenkins credential ID
+        SONAR_AUTH_TOKEN = credentials('Jenkins-SonarQube-token') // matches your credential ID
     }
 
     stages {
