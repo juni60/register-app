@@ -44,12 +44,12 @@ pipeline {
         stage("SonarQube Analysis") {
             steps {
                 script {
-                    withSonarQubeEnv(credentialsId: 'jenkins-sonarqube-token') {
+                    withSonarQubeEnv(credentialsId: 'Jenkins-SonarQube-token') {
                         sh '''
                             mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
                                 -Dsonar.projectKey=register-app \
                                 -Dsonar.projectName="Register App" \
-                                -Dsonar.host.url=http://your-sonarqube-server:9000 \
+                                -Dsonar.host.url=http://18.140.2.58:9000 \
                                 -Dsonar.login=$SONAR_AUTH_TOKEN
                         '''
                     }
