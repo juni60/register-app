@@ -49,7 +49,7 @@ pipeline {
                         sh """
                             mvn sonar:sonar \
                                 -Dsonar.projectKey=register-app-ci \
-                                -Dsonar.projectName="Register App CI" \
+                                -Dsonar.projectName="SonarQubeServer" \
                                 -Dsonar.host.url=http://18.140.2.58:9000 \
                                 -Dsonar.login=$SONAR_AUTH_TOKEN
                         """
