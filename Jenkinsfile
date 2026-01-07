@@ -15,15 +15,17 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout from SCM') {
             steps {
-                checkout scm
+                git branch: 'main',
+                    credentialsId: 'github', // your Jenkins GitHub credential ID
+                    url: 'https://github.com/juni60/register-app.git'
             }
         }
 
         stage('Build') {
             steps {
-                dir('juni60/register-app') { // folder containing pom.xml
+                dir('juni60/register-app') { // adjust if pom.xml is at repo root
                     sh 'mvn clean verify'
                 }
             }
@@ -31,13 +33,13 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                dir('register-app') { // same folder as pom.xml
+                dir('juni60/register-app') { // same folder as pom.xml
                     script {
                         withSonarQubeEnv(credentialsId: 'jenkins-sonarqube-token') {
                             sh '''
                                 mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
                                     -Dsonar.projectKey=my-project \
-                                    -Dsonar.projectName="register-app-ci" \
+                                    -Dsonar.projectName="My Project" \
                                     -Dsonar.host.url=http://your-sonarqube-server:9000 \
                                     -Dsonar.login=$SONAR_AUTH_TOKEN
                             '''
