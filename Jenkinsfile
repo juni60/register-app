@@ -41,9 +41,9 @@ pipeline {
         stage('Build Application') {
             steps {
                 script {
-                    def buildStatus = sh(script: 'mvn clean package -B -DskipTests', returnStatus: true)
-                    if (buildStatus != 0) {
-                        echo "⚠️ Maven build failed (status ${buildStatus}), continuing pipeline..."
+                    def status = sh(script: 'mvn clean package -DskipTests', returnStatus: true)
+                    if (status != 0) {
+                        echo "⚠️ Build failed, continuing pipeline..."
                     }
                 }
             }
@@ -52,9 +52,9 @@ pipeline {
         stage('Test Application') {
             steps {
                 script {
-                    def testStatus = sh(script: 'mvn test -B', returnStatus: true)
-                    if (testStatus != 0) {
-                        echo "⚠️ Maven tests failed (status ${testStatus}), continuing pipeline..."
+                    def status = sh(script: 'mvn test', returnStatus: true)
+                    if (status != 0) {
+                        echo "⚠️ Tests failed, continuing pipeline..."
                     }
                 }
             }
@@ -69,40 +69,18 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube-Server') {
-                    script {
-                        // Detect sources
-                        def sources = sh(script: "find . -name '*.java' -exec dirname {} \\; | sort -u", returnStdout: true).trim()
-                        def sourcesArg = sources ? "-Dsonar.sources=${sources.replaceAll('\\n', ',')}" : ""
-                        if (!sourcesArg) { echo "⚠️ No Java sources found, skipping sonar.sources" }
-
-                        // Detect binaries
-                        def binaries = sh(script: "find . -type d -name 'target' -exec bash -c 'if [ -d \"\$0/classes\" ]; then echo \$0/classes; fi' {} \\;", returnStdout: true).trim()
-                        def binariesArg = binaries ? "-Dsonar.java.binaries=${binaries.replaceAll('\\n', ',')}" : ""
-                        if (!binariesArg) { echo "⚠️ No target/classes folders found, skipping sonar.java.binaries" }
-
-                        // Git info
-                        def gitBranch = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
-                        def gitCommit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
-
-                        // Safe SonarScanner tool
-                        def sonarScannerTool = tool name: 'SonarScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-
-                        sh """
-                            ${sonarScannerTool}/bin/sonar-scanner \
-                            -Dsonar.projectKey=register-app \
-                            -Dsonar.projectName=register-app \
-                            $sourcesArg $binariesArg \
-                            -Dsonar.branch.name=${gitBranch} \
-                            -Dsonar.commit.sha=${gitCommit} || echo "⚠️ SonarScanner returned non-zero, ignoring..."
-                        """
-                    }
+                    sh '''
+                        mvn sonar:sonar \
+                        -Dsonar.projectKey=register-app \
+                        -Dsonar.projectName=register-app
+                    '''
                 }
             }
         }
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 15, unit: 'MINUTES') { // extended timeout
+                timeout(time: 10, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: false
                 }
             }
@@ -111,10 +89,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Pipeline finished successfully!'
+            echo '✅ Build, Test & SonarQube Analysis completed!'
         }
         failure {
-            echo '❌ Pipeline finished with failure (check logs)!'
+            echo '❌ Pipeline failed – check logs'
         }
         always {
             cleanWs()
