@@ -15,43 +15,53 @@ pipeline {
     }
 
     stages {
-        stage('Checkout from SCM') {
+        stage("Cleanup Workspace") {
+            steps {
+                cleanWs()
+            }
+        }
+
+        stage("Checkout from SCM") {
             steps {
                 git branch: 'main',
-                    credentialsId: 'github', // your Jenkins GitHub credential ID
+                    credentialsId: 'github',
                     url: 'https://github.com/juni60/register-app.git'
             }
         }
 
-        stage('Build') {
+        stage("Build Application") {
             steps {
-                dir('juni60/register-app') { // adjust if pom.xml is at repo root
-                    sh 'mvn clean verify'
-                }
+                sh "mvn clean package"
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage("Test Application") {
             steps {
-                dir('juni60/register-app') { // same folder as pom.xml
-                    script {
-                        withSonarQubeEnv(credentialsId: 'jenkins-sonarqube-token') {
-                            sh '''
-                                mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-                                    -Dsonar.projectKey=my-project \
-                                    -Dsonar.projectName="My Project" \
-                                    -Dsonar.host.url=http://your-sonarqube-server:9000 \
-                                    -Dsonar.login=$SONAR_AUTH_TOKEN
-                            '''
-                        }
+                sh "mvn test"
+            }
+        }
+
+        stage("SonarQube Analysis") {
+            steps {
+                script {
+                    withSonarQubeEnv(credentialsId: 'jenkins-sonarqube-token') {
+                        sh '''
+                            mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                                -Dsonar.projectKey=register-app \
+                                -Dsonar.projectName="Register App" \
+                                -Dsonar.host.url=http://your-sonarqube-server:9000 \
+                                -Dsonar.login=$SONAR_AUTH_TOKEN
+                        '''
                     }
                 }
             }
         }
 
-        stage('Quality Gate') {
+        stage("Quality Gate") {
             steps {
-                waitForQualityGate abortPipeline: true
+                script {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
     }
