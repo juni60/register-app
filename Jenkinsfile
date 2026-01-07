@@ -11,8 +11,7 @@ pipeline {
     }
 
     environment {
-        SONAR_HOST_URL = 'http://your-sonarqube-server:9000'
-        SONAR_AUTH_TOKEN = credentials('Jenkins-SonarQube-token') // matches your credential ID
+        SONAR_AUTH_TOKEN = credentials('Jenkins-SonarQube-token') // must match Jenkins credential ID
     }
 
     stages {
@@ -30,23 +29,24 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube-Server') {
-                    sh '''
-                        mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-                            -Dsonar.projectKey=my-project \
-                            -Dsonar.projectName="My Project" \
-                            -Dsonar.host.url=$SONAR_HOST_URL \
-                            -Dsonar.login=$SONAR_AUTH_TOKEN
-                    '''
+                script {
+                    withSonarQubeEnv(credentialsId: 'Jenkins-SonarQube-token') {
+                        sh '''
+                            mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                                -Dsonar.projectKey=my-project \
+                                -Dsonar.projectName="My Project" \
+                                -Dsonar.host.url=http://your-sonarqube-server:9000 \
+                                -Dsonar.login=$SONAR_AUTH_TOKEN
+                        '''
+                    }
                 }
             }
         }
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 15, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
+                // No timeout wrapper here
+                waitForQualityGate abortPipeline: true
             }
         }
     }
