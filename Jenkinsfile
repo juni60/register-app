@@ -23,7 +23,7 @@ pipeline {
 
         stage('Build') {
             steps {
-                dir('your-project-folder') { // change to the folder containing pom.xml
+                dir('juni60/register-app') { // change to the folder containing pom.xml
                     sh 'mvn clean verify'
                 }
             }
