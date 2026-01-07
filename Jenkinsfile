@@ -11,7 +11,7 @@ pipeline {
     }
 
     environment {
-        SONAR_AUTH_TOKEN = credentials('Jenkins-SonarQube-token') // Jenkins credential ID for token
+        SONAR_AUTH_TOKEN = credentials('Jenkins-SonarQube-token') // Jenkins credential ID for SonarQube token
     }
 
     stages {
@@ -44,12 +44,12 @@ pipeline {
         stage("SonarQube Analysis") {
             steps {
                 script {
-                    // 'SonarQubeServer' must match the name configured in Jenkins > Manage Jenkins > Configure System > SonarQube servers
-                    withSonarQubeEnv('SonarQubeServer') {
+                    // Must match the SonarQube server name configured in Jenkins
+                    withSonarQubeEnv('SonarQube-Server') {
                         sh """
                             mvn sonar:sonar \
                                 -Dsonar.projectKey=register-app-ci \
-                                -Dsonar.projectName="SonarQubeServer" \
+                                -Dsonar.projectName="Register App CI" \
                                 -Dsonar.host.url=http://18.140.2.58:9000 \
                                 -Dsonar.login=$SONAR_AUTH_TOKEN
                         """
