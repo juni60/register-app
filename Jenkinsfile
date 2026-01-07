@@ -23,7 +23,7 @@ pipeline {
 
         stage('Build') {
             steps {
-                dir('juni60/register-app') { // change to the folder containing pom.xml
+                dir('juni60/register-app') { // folder containing pom.xml
                     sh 'mvn clean verify'
                 }
             }
@@ -31,7 +31,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                dir('your-project-folder') { // same folder as pom.xml
+                dir('juni60/register-app') { // same folder as pom.xml
                     script {
                         withSonarQubeEnv(credentialsId: 'jenkins-sonarqube-token') {
                             sh '''
