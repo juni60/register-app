@@ -10,8 +10,12 @@ pipeline {
         timestamps()
     }
 
-    stages {
+    environment {
+        SONAR_HOST_URL = 'http://your-sonarqube-server:9000'
+        SONAR_AUTH_TOKEN = credentials('sonar-token-id') // Jenkins credential ID
+    }
 
+    stages {
         stage('Checkout') {
             steps {
                 checkout scm
@@ -27,8 +31,13 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube-Server') {
-                    // Explicitly call the Sonar Maven plugin without relying on pom.xml
-                    sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar'
+                    sh '''
+                        mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                            -Dsonar.projectKey=my-project \
+                            -Dsonar.projectName="My Project" \
+                            -Dsonar.host.url=$SONAR_HOST_URL \
+                            -Dsonar.login=$SONAR_AUTH_TOKEN
+                    '''
                 }
             }
         }
